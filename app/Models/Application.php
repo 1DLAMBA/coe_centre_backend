@@ -18,6 +18,18 @@ class Application extends Model
         'has_paid',
         'programme',
         'application_number',
+        'fees_date',
+        'fees_reference',
         'payment_date',
     ];
+
+    public function bioData()
+{
+    return $this->hasOne(BioData::class);
+}
+public function courses()
+    {
+        return $this->hasMany(Course::class);
+    }
+
 }
