@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('student_details', function (Blueprint $table) {
             $table->id();
-            $table->string('application_number')->unique(); // Foreign key for personal_details
+            $table->unsignedBigInteger('application_number')->unique(); // Foreign key for personal_details
             $table->string('first_school')->nullable();
             $table->string('first_course')->nullable();
             $table->string('p_school_name_1')->nullable();
@@ -35,7 +35,7 @@ return new class extends Migration
             $table->timestamps();
 
             // Foreign key constraint
-            $table->foreign('application_number')->references('application_number')->on('personal_details')->onDelete('cascade');
+            $table->foreign('application_number')->references('id')->on('personal_details')->onDelete('cascade');
         });
     }
 

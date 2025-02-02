@@ -21,6 +21,12 @@ class CourseController extends Controller
         $validatedData = $request->validate([
             'course' => 'nullable',
             'application_id' => 'nullable',
+            'mode_of_course' => 'nullable',
+            'subject_of_study' => 'nullable',
+            'session' => 'nullable',
+            'semester' => 'nullable',
+            'course_type' => 'nullable',
+            'level_of_course' => 'nullable',
         ]);
         Log::debug('PAYLOAD'. $request);
 

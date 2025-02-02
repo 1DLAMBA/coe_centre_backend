@@ -30,6 +30,6 @@ class EducationalDetail extends Model
     // Relationship with PersonalDetails
     public function personalDetail()
     {
-        return $this->belongsTo(PersonalDetail::class, 'application_number', 'application_number');
+        return $this->belongsTo(PersonalDetail::class, 'id', 'application_number');
     }
 }

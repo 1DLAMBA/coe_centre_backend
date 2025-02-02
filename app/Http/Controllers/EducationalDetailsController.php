@@ -29,7 +29,7 @@ class EducationalDetailsController extends Controller
     {
         // Validate incoming data
         $validated = $request->validate([
-            'application_number' => 'required|exists:personal_details,application_number',
+            'application_number' => 'nullable',
             'exam_type' => 'required|string',
             'exam_number' => 'required|string',
             'exam_month' => 'required|string',

@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddApplicationColumnsToPersonalDetailsTable extends Migration
+return new class extends Migration
+
 {
     /**
      * Run the migrations.
@@ -20,10 +21,11 @@ class AddApplicationColumnsToPersonalDetailsTable extends Migration
             $table->string('application_reference')->nullable()->after('application_trxid');
             $table->string('has_admission')->nullable()->after('application_reference');
             $table->string('matric_number')->nullable()->after('has_admission');
-            $table->string('course')->nullable()->after('olevel2');
-            $table->string('school')->nullable()->after('course');
             $table->string('olevel1')->nullable()->after('matric_number');
-            $table->string('olevel2')->nullable()->after('olevel1');
+            $table->string('course')->nullable()->after('olevel1');
+            $table->string('school')->nullable()->after('course');
+            $table->string('olevel2')->nullable()->after('school');
+            $table->string('email')->nullable()->after('olevel2');
         });
     }
 
@@ -38,4 +40,4 @@ class AddApplicationColumnsToPersonalDetailsTable extends Migration
             $table->dropColumn(['has_paid', 'application_date', 'application_trxid', 'application_reference']);
         });
     }
-}
+};

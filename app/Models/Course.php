@@ -9,10 +9,15 @@ class Course extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['application_id', 'course', 'course_code'];
+    protected $fillable = ['application_id', 'course', 'course_code', 
+                            'level_of_course','mode_of_course','fees_paid',
+                            'subject_of_study', 
+                            'session','fees_trx_id',
+                            'semester','course_type',
+                            'fees_reference','course_reg_date'];
 
-    public function application()
+    public function personalDetails()
     {
-        return $this->belongsTo(Application::class);
+        return $this->belongsTo(PersonalDetail::class);
     }
 }

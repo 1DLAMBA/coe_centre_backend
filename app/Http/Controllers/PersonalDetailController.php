@@ -3,7 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\PersonalDetail;
+use App\Models\StudentDetail;
 use Illuminate\Http\Request;
+use App\Imports\StudentsImport;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class PersonalDetailController extends Controller
 {
@@ -13,6 +18,17 @@ class PersonalDetailController extends Controller
     public function index()
     {
         return response()->json(PersonalDetail::all());
+    }
+
+    public function import(String $centre,Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,csv',
+        ]);
+
+        Excel::import(new StudentsImport($centre), $request->file('file'));
+
+        return response()->json(['message' => 'Data imported successfully'], 200);
     }
 
     /**
@@ -26,7 +42,7 @@ class PersonalDetailController extends Controller
             'other_names' => 'required|string',
             'date_of_birth' => 'required|date',
             'marital_status' => 'required|string',
-            'phone_number' => 'required|string',
+            'phone_number' => 'required',
             'address' => 'required|string',
             'state_of_origin' => 'required|string',
             'local_government' => 'required|string',
@@ -46,6 +62,13 @@ class PersonalDetailController extends Controller
             'application_reference' => 'nullable|string',
             'has_admission' => 'nullable|string',
             'matric_number' => 'nullable|string',
+            'email' => 'nullable|string',
+            'passport' => 'nullable|string',
+            'nin' => 'nullable|string',
+            'olevel1' => 'nullable|string',
+            'scratchcard_pin_1' => 'nullable|string',
+            'scratchcard_serial' => 'nullable|string',
+            'scratchcard_upload' => 'nullable|string',
         ]);
 
         $personalDetail = PersonalDetail::create($validatedData);
@@ -56,10 +79,20 @@ class PersonalDetailController extends Controller
     /**
      * Display the specified personal detail.
      */
-    public function show($id)
+    public function show(string $id)
     {
-        $personalDetail = PersonalDetail::where('application_number', $id)->first();
-        return response()->json($personalDetail);
+        $personalDetail = PersonalDetail::with('studentDetail')->where('id', $id)->first();
+        return response()->json($personalDetail->load('studentDetail'));
+    }
+    
+    public function approve(string $id)
+    {
+        $personalDetail = PersonalDetail::where('id', $id)->first();
+        $studentDetails = StudentDetail::where('application_number', $id)->first();
+        $personalDetail->has_admission = true;
+        $personalDetail->course = $studentDetails->first_course;
+        $personalDetail->save();
+        return response()->json($personalDetail->load('studentDetail'));
     }
 
     public function find(Request $request)
@@ -70,11 +103,25 @@ class PersonalDetailController extends Controller
         $personalDetail = PersonalDetail::where('application_number', $applicationNumber)->first();
         if ($personalDetail){
 
-            return response()->json($personalDetail);
+            if ($personalDetail->has_admission){
+    
+                if( $personalDetail->matric_number){
+    
+                    return response()->json($personalDetail);
+                } else{
+              return response()->json(['message' => 'acceptance', 'user'=>$personalDetail], 200);
+    
+                     
+                }
+    
+            } else{
+              return response()->json(['message' => 'pending'], 425);
+    
+            }
         } else{
-          return response()->json(['message' => 'Student not found'], 404);
-
-        }
+            return response()->json(['message' => 'Student not found'], 404);
+  
+          }
     }
 
     /**
@@ -82,33 +129,61 @@ class PersonalDetailController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $personalDetail = PersonalDetail::findOrFail($id);
+        $personalDetail = PersonalDetail::where('id',$id)->first();
 
         $validatedData = $request->validate([
-            'application_number' => 'sometimes|unique:personal_details,application_number,' . $id,
-            'surname' => 'sometimes|string',
-            'other_names' => 'sometimes|string',
+            'surname' => 'sometimes',
+            'other_names' => 'sometimes',
             'date_of_birth' => 'sometimes|date',
-            'marital_status' => 'sometimes|string',
-            'phone_number' => 'sometimes|string',
-            'address' => 'sometimes|string',
-            'state_of_origin' => 'sometimes|string',
-            'local_government' => 'sometimes|string',
-            'ethnic_group' => 'nullable|string',
-            'religion' => 'sometimes|string',
-            'name_of_father' => 'sometimes|string',
-            'father_state_of_origin' => 'sometimes|string',
-            'father_place_of_birth' => 'sometimes|string',
-            'mother_state_of_origin' => 'sometimes|string',
-            'mother_place_of_birth' => 'sometimes|string',
-            'applicant_occupation' => 'sometimes|string',
-            'desired_study_cent' => 'sometimes|string',
-            'working_experience' => 'nullable|string',
+            'marital_status' => 'sometimes',
+            'phone_number' => 'sometimes',
+            'address' => 'sometimes',
+            'state_of_origin' => 'sometimes',
+            'local_government' => 'sometimes',
+            'ethnic_group' => 'nullable',
+            'religion' => 'sometimes',
+            'name_of_father' => 'sometimes',
+            'father_state_of_origin' => 'sometimes',
+            'father_place_of_birth' => 'sometimes',
+            'mother_state_of_origin' => 'sometimes',
+            'mother_place_of_birth' => 'sometimes',
+            'applicant_occupation' => 'sometimes',
+            'desired_study_cent' => 'sometimes',
+            'has_admission' => 'sometimes',
+            'matric_number' => 'sometimes',
+            'application_reference' => 'sometimes',
+            'application_trxid' => 'sometimes',
+            'application_date' => 'sometimes',
+            'working_experience' => 'nullable',
+            'course_paid' => 'nullable',
+            'email' => 'nullable',
+            'course_fee_reference' => 'nullable',
+            'couse_fee_date' => 'nullable',
+            'nin' => 'nullable|string',
+            'olevel1' => 'nullable|string',
+            'scratchcard_pin_1' => 'nullable|string',
+            'scratchcard_serial' => 'nullable|string',
+            'scratchcard_upload' => 'nullable|string',
         ]);
+    Log::info('Validated Data:', $validatedData);
+    if($personalDetail->matric_number == null){
 
+        $matricNumber = PersonalDetail::generateMatricNumber($personalDetail->course, $personalDetail->desired_study_cent);
+        $personalDetail->matric_number = $matricNumber;
+        $personalDetail->application_number = $matricNumber;
+        $personalDetail->application_reference = $validatedData['application_reference'];
+        // $personalDetail->matric_number = $matricNumber;
+        $personalDetail->save();
+
+        return response()->json($personalDetail);
+
+    } else{
         $personalDetail->update($validatedData);
 
         return response()->json($personalDetail);
+    }
+
+        
     }
 
     /**

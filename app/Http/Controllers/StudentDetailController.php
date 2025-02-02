@@ -21,7 +21,7 @@ class StudentDetailController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'application_number' => 'required|string|exists:personal_details,application_number|unique:student_details,application_number',
+            'application_number' => 'nullable',
             'first_school' => 'nullable|string|max:255',
             'first_course' => 'nullable|string|max:255',
             'p_school_name_1' => 'nullable|string|max:255',
@@ -47,8 +47,10 @@ class StudentDetailController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(StudentDetail $studentDetail)
+    
+    public function show(string $id)
     {
-        return response()->json($studentDetail->load('personalDetail'), 200);
+        $student = StudentDetail::where('application_number', $id)->first();
+        return response()->json($student);
     }
 }

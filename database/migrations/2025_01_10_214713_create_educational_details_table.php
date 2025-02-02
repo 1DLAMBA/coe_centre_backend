@@ -15,7 +15,7 @@ class CreateEducationalDetailsTable extends Migration
     {
         Schema::create('educational_details', function (Blueprint $table) {
             $table->id();
-            $table->string('application_number'); // Foreign key for personal_details
+            $table->unsignedBigInteger('application_number'); // Foreign key for personal_details
             $table->string('exam_type');
             $table->string('exam_number');
             $table->string('exam_month');
@@ -43,7 +43,7 @@ class CreateEducationalDetailsTable extends Migration
 
             // Foreign key constraint
             $table->foreign('application_number')
-                ->references('application_number')
+                ->references('id')
                 ->on('personal_details')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');

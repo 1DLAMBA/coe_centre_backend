@@ -34,6 +34,6 @@ class StudentDetail extends Model
      */
     public function personalDetail()
     {
-        return $this->hasOne(PersonalDetail::class, 'application_number', 'application_number');
+        return $this->hasOne(PersonalDetail::class, 'ud', 'application_number');
     }
 }
